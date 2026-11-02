@@ -1,6 +1,6 @@
 import express, { application } from 'express'
 import 'dotenv/config'
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import multer from 'multer';
 import cors from 'cors'
 const app = express();
@@ -97,6 +97,11 @@ app.post('/addbook', async (req, res) => {
 })
 
 app.get('/allbooks', async (req, res) => {
+    const result = await addbookcollection.find().toArray()
+    res.send(result)
+});
+
+app.get('/homebooks', async (req, res) => {
     try {
         const result = await addbookcollection
             .find()
@@ -107,10 +112,17 @@ app.get('/allbooks', async (req, res) => {
         res.send(result);
     } catch (error) {
         res.status(500).send({
-            message: "Failed to fetch books"
+            message: "Failed to fetch home books"
         });
     }
 });
+
+app.get('/allbooks/:id', async(req, res) => {
+    const {id} = req.params
+    const result = await addbookcollection.findOne({_id: new ObjectId(id)})
+
+    res.send(result)
+})
 
 app.get('/', (req, res) => {
     res.send({ message: 'server is running fine!' })
