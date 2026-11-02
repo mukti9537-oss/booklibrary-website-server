@@ -96,10 +96,21 @@ app.post('/addbook', async (req, res) => {
     res.send(result)
 })
 
-app.get('/allbooks', async(req, res) => {
-    const result = await addbookcollection.find().toArray()
-    res.send(result)
-})
+app.get('/allbooks', async (req, res) => {
+    try {
+        const result = await addbookcollection
+            .find()
+            .sort({ _id: -1 })
+            .limit(6)
+            .toArray();
+
+        res.send(result);
+    } catch (error) {
+        res.status(500).send({
+            message: "Failed to fetch books"
+        });
+    }
+});
 
 app.get('/', (req, res) => {
     res.send({ message: 'server is running fine!' })
