@@ -32,7 +32,7 @@ const upload = multer({
 });
 
 // Upload image to ImgBB
-app.post('/upload-image', upload.single('image'), async (req, res) => {
+app.post('/upload-image', upload.single('bookImage'), async (req, res) => {
     try {
         // Check image
         if (!req.file) {
@@ -96,6 +96,16 @@ app.post('/addbook', async (req, res) => {
     res.send(result)
 })
 
+app.patch('/addbook/:id', async (req, res) => {
+    const {id} = req.params
+    const updatedData = req.body
+    const result = await addbookcollection.updateOne(
+        {_id: new ObjectId(id)},
+        {$set: updatedData}
+    )
+    res.status(200).json(result)
+})
+
 app.get('/allbooks', async (req, res) => {
     const result = await addbookcollection.find().toArray()
     res.send(result)
@@ -123,6 +133,8 @@ app.get('/allbooks/:id', async(req, res) => {
 
     res.send(result)
 })
+
+
 
 app.get('/', (req, res) => {
     res.send({ message: 'server is running fine!' })
