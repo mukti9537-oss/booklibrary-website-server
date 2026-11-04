@@ -106,6 +106,14 @@ app.patch('/addbook/:id', async (req, res) => {
     res.status(200).json(result)
 })
 
+app.delete('/addbook/:id',async (req, res) => {
+    const {id} = req.params
+    const result = await addbookcollection.deleteOne(
+        {_id: new ObjectId(id)},
+    )
+    res.status(200).json(result)
+}) 
+
 app.get('/allbooks', async (req, res) => {
     const result = await addbookcollection.find().toArray()
     res.send(result)
