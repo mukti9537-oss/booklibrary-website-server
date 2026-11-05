@@ -6,7 +6,10 @@ import cors from 'cors'
 const app = express();
 const PORT = 8000
 
-app.use(cors())
+app.use(cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+}))
 app.use(express.json())
 
 
@@ -25,6 +28,18 @@ export async function connectToMongoDB() {
 const mongoClient = await connectToMongoDB();
 const db = mongoClient.db("booklibrary-website")
 const addbookcollection = db.collection("addbook")
+const borrowbookCollection = db.collection("borrowbook")
+
+const verifyApi = (req, res, next) => {
+    const authHeader = req.headers.authorization
+    console.log(authHeader)
+
+    if(authHeader !== "user logged in"){
+        return res.status(401).send({msg: 'unauthorized!'})
+    }
+    console.log("i am middleware")
+    next()   
+}
 
 // Image upload setup
 const upload = multer({
@@ -114,6 +129,16 @@ app.delete('/addbook/:id',async (req, res) => {
     res.status(200).json(result)
 }) 
 
+app.post('/borrowbook', async (req, res) => {
+    const data = req.body
+    const result = await borrowbookCollection.insertOne(data)
+    res.send(result)
+})
+app.get('/my-borrows/:email', async(req,res) => {
+    const {email} = res.params
+    const result = await borrowbookCollection.find()
+})
+
 app.get('/allbooks', async (req, res) => {
     const result = await addbookcollection.find().toArray()
     res.send(result)
@@ -135,7 +160,9 @@ app.get('/homebooks', async (req, res) => {
     }
 });
 
-app.get('/allbooks/:id', async(req, res) => {
+app.get('/allbooks/:id',
+    verifyApi, 
+    async(req,res) => {
     const {id} = req.params
     const result = await addbookcollection.findOne({_id: new ObjectId(id)})
 
