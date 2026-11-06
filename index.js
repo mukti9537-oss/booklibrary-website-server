@@ -30,14 +30,18 @@ const db = mongoClient.db("booklibrary-website")
 const addbookcollection = db.collection("addbook")
 const borrowbookCollection = db.collection("borrowbook")
 
-const verifyApi = (req, res, next) => {
+const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization
     console.log(authHeader)
 
-    if(authHeader !== "user logged in"){
+    if(!authHeader){
         return res.status(401).send({msg: 'unauthorized!'})
     }
-    console.log("i am middleware")
+
+    const token = authHeader.split(" ")[1]
+    if(!token){
+        return res.status(401).send({msg: 'unauthorized!'})
+    }
     next()   
 }
 
@@ -161,7 +165,7 @@ app.get('/homebooks', async (req, res) => {
 });
 
 app.get('/allbooks/:id',
-    verifyApi, 
+    verifyToken, 
     async(req,res) => {
     const {id} = req.params
     const result = await addbookcollection.findOne({_id: new ObjectId(id)})
