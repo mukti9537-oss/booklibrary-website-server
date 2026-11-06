@@ -8,7 +8,7 @@ const app = express();
 const PORT = 8000
 
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: `${process.env.CLIENT_URL}`,
     credentials: true,
 }))
 app.use(express.json())
@@ -44,7 +44,7 @@ const verifyToken = async (req, res, next) => {
         return res.status(401).send({msg: 'unauthorized!'})
     }
 
-    const JWKS = createRemoteJWKSet(new URL('http://localhost:3000/api/auth/jwks'))
+    const JWKS = createRemoteJWKSet(new URL(`${process.env.CLIENT_URL}/api/auth/jwks`))
 
     try {
         const{payload} = await jwtVerify(token, JWKS)
@@ -203,4 +203,5 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`server is running on port ${PORT}`)
-})
+});
+export default app
