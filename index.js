@@ -3,6 +3,7 @@ import 'dotenv/config'
 import { MongoClient, ObjectId } from 'mongodb';
 import multer from 'multer';
 import cors from 'cors'
+import {  createRemoteJWKSet, jwtVerify } from 'jose';
 const app = express();
 const PORT = 8000
 
@@ -30,7 +31,7 @@ const db = mongoClient.db("booklibrary-website")
 const addbookcollection = db.collection("addbook")
 const borrowbookCollection = db.collection("borrowbook")
 
-const verifyToken = (req, res, next) => {
+const verifyToken = async (req, res, next) => {
     const authHeader = req.headers.authorization
     console.log(authHeader)
 
@@ -42,7 +43,17 @@ const verifyToken = (req, res, next) => {
     if(!token){
         return res.status(401).send({msg: 'unauthorized!'})
     }
-    next()   
+
+    const JWKS = createRemoteJWKSet(new URL('http://localhost:3000/api/auth/jwks'))
+
+    try {
+        const{payload} = await jwtVerify(token, JWKS)
+          next() 
+    } catch (error) {
+         return res.status(500).send({msg: 'server error'})
+    }
+
+    
 }
 
 // Image upload setup
@@ -107,7 +118,7 @@ app.post('/upload-image', upload.single('bookImage'), async (req, res) => {
 
 //http://localhost:8000/
 
-app.post('/addbook', async (req, res) => {
+app.post('/addbook',verifyToken, async (req, res) => {
     const data = req.body
 
     const result = await addbookcollection.insertOne(data)
