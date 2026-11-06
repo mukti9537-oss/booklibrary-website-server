@@ -126,7 +126,7 @@ app.post('/addbook',verifyToken, async (req, res) => {
     res.send(result)
 })
 
-app.patch('/addbook/:id', async (req, res) => {
+app.patch('/addbook/:id', verifyToken, async (req, res) => {
     const {id} = req.params
     const updatedData = req.body
     const result = await addbookcollection.updateOne(
@@ -136,7 +136,7 @@ app.patch('/addbook/:id', async (req, res) => {
     res.status(200).json(result)
 })
 
-app.delete('/addbook/:id',async (req, res) => {
+app.delete('/addbook/:id',verifyToken,async (req, res) => {
     const {id} = req.params
     const result = await addbookcollection.deleteOne(
         {_id: new ObjectId(id)},
@@ -146,13 +146,24 @@ app.delete('/addbook/:id',async (req, res) => {
 
 app.post('/borrowbook', async (req, res) => {
     const data = req.body
+    data.borrowedAt = new Date();
     const result = await borrowbookCollection.insertOne(data)
     res.send(result)
 })
 app.get('/my-borrows/:email', async(req,res) => {
-    const {email} = res.params
-    const result = await borrowbookCollection.find()
+    const {email} = req.params
+    const result = await borrowbookCollection.find({userEmail: email }).toArray()
+    res.send(result)
 })
+app.delete('/my-borrows/:id', async (req, res) => {
+    const { id } = req.params;
+
+    const result = await borrowbookCollection.deleteOne({
+        _id: new ObjectId(id)
+    });
+
+    res.send(result);
+});
 
 app.get('/allbooks', async (req, res) => {
     const result = await addbookcollection.find().toArray()
